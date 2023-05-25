@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import time
+from tqdm import tqdm
 import torch
 import numpy as np
 from progress.bar import Bar
@@ -166,7 +167,8 @@ class Trainer(object):
     bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
     end = time.time()
     
-    for iter_id, batch in enumerate(data_loader):
+    # for iter_id, batch in enumerate(data_loader): # origin
+    for iter_id, batch in enumerate(tqdm(data_loader, desc='{}: Epoch [{}/{}]'.format(phase, epoch, opt.num_epochs), total=num_iters)):
       if iter_id >= num_iters:
         break
       data_time.update(time.time() - end)
