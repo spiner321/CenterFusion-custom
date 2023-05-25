@@ -1,5 +1,6 @@
 data/*
 outputs/*
+result/*
 !data/README.md
 models/*
 !models/README.md
