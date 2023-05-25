@@ -32,7 +32,7 @@ class opts(object):
     self.parser.add_argument('--demo', default='', 
                              help='path to image/ image folders/ video. '
                                   'or "webcam"')
-    self.parser.add_argument('--load_model', default='../models/nia_centerfusion.pth',
+    self.parser.add_argument('--load_model', default='',
                              help='path to pretrained model')
     self.parser.add_argument('--resume', action='store_true',
                              help='resume an experiment. '
@@ -136,7 +136,7 @@ class opts(object):
                              help='batch size on the master gpu.')
     self.parser.add_argument('--num_iters', type=int, default=-1,
                              help='default: #samples / batch_size.')
-    self.parser.add_argument('--val_intervals', type=int, default=50,
+    self.parser.add_argument('--val_intervals', type=int, default=10,
                              help='number of epochs to run validation.') # not used
     self.parser.add_argument('--trainval', action='store_true',
                              help='include validation in training and '

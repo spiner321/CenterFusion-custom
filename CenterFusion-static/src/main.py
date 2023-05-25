@@ -108,7 +108,8 @@ def main(opt):
             logger.write('{} {:8f} | '.format(k, v))
 
         # evaluate
-        if opt.val_intervals > 0 and epoch % opt.val_intervals == 0:
+        # if opt.val_intervals > 0 and epoch % opt.val_intervals == 0: # origin
+        if opt.val_intervals > 0 and opt.save_all:
             save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(mark)),
                        epoch, model, optimizer)
             with torch.no_grad():
