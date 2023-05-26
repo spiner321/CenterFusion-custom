@@ -27,8 +27,7 @@ class nia(GenericDataset):
   num_categories = 7
   
   # class_name = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian', 'barrier']
-  class_name = ['median_strip', 'overpass', 'tunnel',
-        'sound_barrier', 'street_trees', 'ramp_sect', 'road_sign']
+  class_name = ['median_strip', 'overpass', 'tunnel', 'sound_barrier', 'street_trees', 'ramp_sect', 'road_sign']
 
   cat_ids = {i + 1: i + 1 for i in range(num_categories)}
   focal_length = 1045
@@ -291,5 +290,17 @@ class nia(GenericDataset):
     #   '--plot_examples {} '.format(n_plots) + \
     #   '--render_curves {} '.format(render_curves))
 
-    
+
+    # evaluate_nia
+    import subprocess
+
+    os.chdir('./tools/nuScenes_devkit/python_sdk/nuscenes/eval/detection')
+
+    result_path = results_file
+    ann_path = self.ann_path
+    output_dir = output_dir
+
+    run_evaluate_nia = f'python evaluate_nia.py --result_path {result_path} --ann_path {ann_path} --output_dir {output_dir}'
+    subprocess.call(run_evaluate_nia, shell=True)
+
     return output_dir

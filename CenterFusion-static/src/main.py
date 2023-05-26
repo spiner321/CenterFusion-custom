@@ -90,7 +90,7 @@ def main(opt):
 
     print('Starting training...')
     for epoch in range(start_epoch + 1, opt.num_epochs + 1):
-        mark = epoch if opt.save_all else 'last'
+        # mark = epoch if opt.save_all else 'last' # origin
 
         # log learning rate
         for param_group in optimizer.param_groups:
@@ -107,9 +107,16 @@ def main(opt):
             logger.scalar_summary('train_{}'.format(k), v, epoch)
             logger.write('{} {:8f} | '.format(k, v))
 
+        # save model
+        if opt.save_all:
+            mark = epoch
+            save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(mark)),
+                       epoch, model, optimizer)
+        else:
+            mark = 'last'
+
         # evaluate
-        # if opt.val_intervals > 0 and epoch % opt.val_intervals == 0: # origin
-        if opt.val_intervals > 0 and opt.save_all:
+        if opt.val_intervals > 0 and epoch % opt.val_intervals == 0: # origin
             save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(mark)),
                        epoch, model, optimizer)
             with torch.no_grad():
