@@ -11,6 +11,7 @@ import time
 from progress.bar import Bar
 import torch
 import copy
+from tqdm import tqdm
 
 from opts import opts
 from logger import Logger
@@ -89,7 +90,7 @@ def prefetch_test(opt):
 
   data_loader = torch.utils.data.DataLoader(
     PrefetchDataset(opt, dataset, detector.pre_process), 
-    batch_size=32, shuffle=False, num_workers=4, pin_memory=True)
+    batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
 
   results = {}
   num_iters = len(data_loader) if opt.num_iters < 0 else opt.num_iters
@@ -100,7 +101,8 @@ def prefetch_test(opt):
     for img_id in data_loader.dataset.images:
       results[img_id] = load_results['{}'.format(img_id)]
     num_iters = 0
-  for ind, (img_id, pre_processed_images) in enumerate(data_loader):
+  # for ind, (img_id, pre_processed_images) in enumerate(data_loader):
+  for ind, (img_id, pre_processed_images) in enumerate(tqdm(data_loader, desc=f'{split}', total=num_iters)):
     if ind >= num_iters:
       break
     if opt.tracking and ('is_first_frame' in pre_processed_images):
