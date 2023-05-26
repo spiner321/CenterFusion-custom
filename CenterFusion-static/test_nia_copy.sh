@@ -5,7 +5,7 @@
 # Perform detection and evaluation
 python src/test.py ddd \
     --dataset nia \
-    --gpus 1 \
+    --gpus 2 \
     --val_split test_norm \
     --run_dataset_eval \
     --nuscenes_att \
@@ -13,7 +13,7 @@ python src/test.py ddd \
     --pointcloud \
     --print_iter 100 \
     --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/all \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/test/normal_epoch18 \
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/test/temp \
     --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_18.pth \
 
 
