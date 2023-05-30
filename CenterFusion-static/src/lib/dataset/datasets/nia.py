@@ -294,13 +294,14 @@ class nia(GenericDataset):
     # evaluate_nia
     import subprocess
 
-    os.chdir('./tools/nuScenes_devkit/python_sdk/nuscenes/eval/detection')
+    os.getcwd()
+    # os.chdir('./tools/nuScenes_devkit/python_sdk/nuscenes/eval/detection')
 
     result_path = results_file
     ann_path = self.ann_path
     output_dir = output_dir
 
-    run_evaluate_nia = f'python evaluate_nia.py --result_path {result_path} --ann_path {ann_path} --output_dir {output_dir}'
+    run_evaluate_nia = f'python -m tools.nuscenes.eval.detection.evaluate_nia --result_path {result_path} --ann_path {ann_path} --output_dir {output_dir}'
     subprocess.call(run_evaluate_nia, shell=True)
 
     return output_dir
