@@ -1,20 +1,20 @@
 # export CUDA_DEVICE_ORDER=PCI_BUS_ID
 # export CUDA_VISIBLE_DEVICES=0,1,2,3
-# cd ../src
+cd ./src
 
 # Perform detection and evaluation
-python src/test.py ddd \
+python test.py ddd \
     --dataset nia \
     --gpus 1 \
-    --val_split test_norm \
+    --val_split test_normal \
     --run_dataset_eval \
     --nuscenes_att \
     --velocity \
     --pointcloud \
     --print_iter 100 \
     --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/all \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/test/normal_epoch18 \
-    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_18.pth \
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/test/normal_epoch63 \
+    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_63.pth
 
 
 # python src/test.py ddd \

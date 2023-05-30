@@ -25,10 +25,10 @@ python src/main.py \
     --pillar_dims 1.0,0.2,0.2 \
     --max_pc_dist 80.0 \
     --print_iter 100 \
-    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/all \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train \
-    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_1.pth \
-    --resume
+    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/selectsub1 \
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train \
+    # --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_1.pth \
+    # --resume
 #     # --freeze_backbone \
 
 

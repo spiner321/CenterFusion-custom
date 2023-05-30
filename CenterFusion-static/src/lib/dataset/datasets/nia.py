@@ -52,8 +52,8 @@ class nia(GenericDataset):
     split_names = {
       'train': 'train',
       'val':'val',
-      'test_norm': 'test_normal',
-      'test_abnorm': 'test_abnormal'
+      'test_normal': 'test_normal',
+      'test_abnormal': 'test_abnormal'
     }
     
     split_name = split_names[split]
@@ -276,11 +276,11 @@ class nia(GenericDataset):
     self.save_results(results, save_dir, task, split)
     render_curves = 1 if render_curves else 0
 
-    results_file = os.path.join('{}/results_nia_{}_{}.json '.format(save_dir, task, split))
+    # results_file = os.path.join('{}/results_nia_{}_{}.json '.format(save_dir, task, split))
     #
     # assert task == 'det'
     #
-    output_dir = '{}/nia_eval_det_output_{}/'.format(save_dir, split)
+    output_file = '{}/nia_eval_det_output_{}/'.format(save_dir, split)
     # os.system('python ' + \
     #   './src/tools/nuscenes-devkit/python-sdk/nuscenes/eval/detection/evaluate_nia.py ' + \
     #   '--result_path {}/results_nia_{}_{}.json '.format(save_dir, task, split) + \
@@ -294,14 +294,16 @@ class nia(GenericDataset):
     # evaluate_nia
     import subprocess
 
-    os.getcwd()
-    # os.chdir('./tools/nuScenes_devkit/python_sdk/nuscenes/eval/detection')
+    # print(os.getcwd())
+    result_path = os.path.join('{}/results_nia_{}_{}.json '.format(save_dir, task, split))
+    ann_path = self.opt.data_dir + '/annotations/{}.json'.format(split)
+    output_dir = save_dir
 
-    result_path = results_file
-    ann_path = self.ann_path
-    output_dir = output_dir
+    # print(result_path)
+    # print(ann_path)
+    # print(output_dir)
 
     run_evaluate_nia = f'python -m tools.nuscenes.eval.detection.evaluate_nia --result_path {result_path} --ann_path {ann_path} --output_dir {output_dir}'
     subprocess.call(run_evaluate_nia, shell=True)
 
-    return output_dir
+    return output_file
