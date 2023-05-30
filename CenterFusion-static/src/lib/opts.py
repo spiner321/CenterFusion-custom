@@ -272,7 +272,7 @@ class opts(object):
     self.parser.add_argument('--train_split', default='train',
                              choices=['train','mini_train', 'train_detect', 'train_track', 'mini_train_2', 'trainval'])
     self.parser.add_argument('--val_split', default='val',
-                             choices=['val_norm','val_abnorm','test', "val", 'test_norm', 'test_abnorm'])
+                             choices=['val_norm','val_abnorm','test', "val", 'test_normal', 'test_abnormal'])
     self.parser.add_argument('--max_pc', type=int, default=1000,
                              help='maximum number of points in the point cloud')
     self.parser.add_argument('--r_a', type=float, default=250,
