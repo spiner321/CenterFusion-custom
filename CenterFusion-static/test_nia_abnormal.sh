@@ -5,16 +5,16 @@ cd ./src
 # Perform detection and evaluation
 python test.py ddd \
     --dataset nia \
-    --gpus 2 \
-    --val_split test_normal \
+    --gpus 1 \
+    --val_split test_abnormal \
     --run_dataset_eval \
     --nuscenes_att \
     --velocity \
     --pointcloud \
     --print_iter 100 \
-    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/sample \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/sample/test/temp \
-    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_63.pth \
+    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/selectsub1 \
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/test/abnormal_epoch22 \
+    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train/model_22.pth
 
 
 # python src/test.py ddd \
