@@ -12,9 +12,9 @@ python test.py ddd \
     --velocity \
     --pointcloud \
     --print_iter 100 \
-    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/all \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/test/normal_epoch63 \
-    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_63.pth
+    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/selectsub1 \
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/test/normal_epoch22 \
+    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train/model_22.pth
 
 
 # python src/test.py ddd \

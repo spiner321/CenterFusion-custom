@@ -28,19 +28,25 @@ from nuscenes.utils.geometry_utils import BoxVisibility, transform_matrix
 # from nuScenes_lib.utils_kitti import KittiDB
 from nuscenes.eval.detection.utils import category_to_detection_name
 from pyquaternion import Quaternion
-from tqdm.auto import tqdm
+from tqdm import tqdm
 import glob
 from pathlib import Path
 
 sys.path.insert(0, os.getcwd())
 
+# import _init
 
 # from nuScenes_lib.utils_radar import map_pointcloud_to_image
 
 #// ================ PARAMETERS ================
-DATA_PATH = '/data/kimgh/CenterFusion-custom/CenterFusion-static/data/sample'
+# DATA_PATH = os.path.join(os.getcwd(), 'data/nia/')
+# DISTORTION = True
+DATA_PATH = '/data/kimgh/CenterFusion-custom/CenterFusion-static/data/all'
 OUT_PATH = DATA_PATH + '/annotations'
 subsample = 10
+
+# DEMO_PATH = "/data/sey/nia-48/CenterFusion-NIA/data/demo"
+
 
 SPLITS = {
     'train': 'train',
@@ -50,7 +56,8 @@ SPLITS = {
 }
 
 DEBUG = False
-
+# CATS = ['car', 'truck', 'bus', 'bicycle',
+#         'motorcycle', 'pedestrian', 'barrier']
 CATS = ['median_strip', 'overpass', 'tunnel',
         'sound_barrier', 'street_trees', 'ramp_sect', 'road_sign']
 
@@ -72,14 +79,6 @@ RADARS_FOR_CAMERA = {
     'CAM_BACK_LEFT':   ["RADAR_BACK_LEFT", "RADAR_FRONT_LEFT"],
     'CAM_BACK_RIGHT':  ["RADAR_BACK_RIGHT", "RADAR_FRONT_RIGHT"],
     'CAM_BACK':        ["RADAR_BACK_RIGHT", "RADAR_BACK_LEFT"]}
-
-ATTRIBUTE_TO_ID = {
-    '': 0, 'cycle.with_rider': 1, 'cycle.without_rider': 2,
-    'pedestrian.moving': 3, 'pedestrian.standing': 4,
-    'pedestrian.sitting_lying_down': 5,
-    'vehicle.moving': 6, 'vehicle.parked': 7,
-    'vehicle.stopped': 8}
-
 NUM_SWEEPS = 1
 
 suffix1 = '_{}sweeps'.format(NUM_SWEEPS) if NUM_SWEEPS > 1 else ''
@@ -87,10 +86,10 @@ OUT_PATH = OUT_PATH + suffix1 + '/'
 
 CAT_IDS = {v: i + 1 for i, v in enumerate(CATS)}
 
+
 DISTORTION_COEFFI = [[-0.120864, 0.057409], [-0.141913, 0.059090]]
 
 
-#// ================ FUNCTIONS ================
 def _rot_y2alpha(rot_y, x, cx, fx):
     """
     Get rotation_y by alpha + theta - 180
@@ -110,32 +109,13 @@ def _bbox_inside(box1, box2):
     return box1[0] > box2[0] and box1[0] + box1[2] < box2[0] + box2[2] and \
         box1[1] > box2[1] and box1[1] + box1[3] < box2[1] + box2[3]
 
-def box_select(box_list, cat): # box_list: "3d_box", cat: "category"
-    if cat=="MEDIAN_STRIP" or cat=="SOUND_BARRIER":
-        dist = []
-        for box in box_list:
-            dist.append(box["location"][0])
-        idx = dist.index(min(dist))
-        # # 중앙분리대, 방음벽의 길이를 15m로 고정
-        # new_x = box_list[idx]['location'][0] - box_list[idx]['dimension'][2]/2 + 7.5
-        # new_l = 15
-        # box_list[idx]['location'][0] = new_x
-        # box_list[idx]['dimension'][2] = new_l
-        return box_list[idx]
-    elif cat=='RAMP_SECT':
-        dist = []
-        for box in box_list:
-            dist.append(box["location"][1])
-        idx = dist.index(min(dist))
-        return box_list[idx]
-    elif cat=="OVERPASS" or cat=="TUNNEL":
-        width = []
-        for box in box_list:
-            width.append(box["dimension"][0])
-        idx = width.index(max(width))
-        return box_list[idx]
-    else:
-        return box_list[0]
+
+ATTRIBUTE_TO_ID = {
+    '': 0, 'cycle.with_rider': 1, 'cycle.without_rider': 2,
+    'pedestrian.moving': 3, 'pedestrian.standing': 4,
+    'pedestrian.sitting_lying_down': 5,
+    'vehicle.moving': 6, 'vehicle.parked': 7,
+    'vehicle.stopped': 8}
 
 def gen_token(imgpath):
     fp_parts = Path(imgpath).parts
@@ -158,15 +138,17 @@ def gen_clippaths(data_rt, split_tvte, slicing=None):
         ret = sorted(glob.glob(gp))[:slicing]
     return ret
 
-
-
 def main():
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
 
-    for split in list(SPLITS.values()):
+    # SPLITS =  { 'train': 'train', 'val_norm': 'val_norm', 'val_abnorm': 'val_abnorm'}
+    for split in SPLITS:
+        # data_path = DATA_PATH + '{}/'.format(SPLITS[split])
         data_path = DATA_PATH
-
+        # nusc = NuScenes(
+        #   version=SPLITS[split], dataroot=data_path, verbose=True)
+        # out_path = OUT_PATH + '{}_wabnorm.json'.format(split)  # /data/nia/
         out_path = OUT_PATH + '{}.json'.format(split)  # /data/nia/
         categories_info = [{'name': CATS[i], 'id': i + 1}
                            for i in range(len(CATS))]
@@ -175,16 +157,34 @@ def main():
         num_images = 0
         num_anns = 0
         num_videos = 0
+
+        # SCENE_SPLITS = generate_scene_split(10)
+        # #split = 'val_norm'
+        # for scene in tqdm(SCENE_SPLITS[split]):
+
+        # DATA_PATH = '/data/NIA48/raw'
         
         scenes = gen_clippaths(DATA_PATH, split)
         
-        for scene_path in tqdm(scenes, desc=split):
-            # print(scene_path)
+        for scene_path in tqdm(scenes):
+            print(scene_path)
+            # if not os.path.isdir(os.path.join(data_path,scene)):
+            #   data_path = os.path.join(DATA_PATH, 'extreme')
 
+        #   class_ind = scene[-2:]
+
+            # condition= 'normal'
+            # if split == 'train':
+            #   if (scene in SCENE_SPLITS['train_abnorm']) or (scene in SCENE_SPLITS['val_abnorm']):
+            #     condition = 'abnormal'
+            # elif split[-6:] == 'abnorm':
+            #     condition = 'abnormal'
             condition = Path(scene_path).parts[-3]
             class_ind = Path(scene_path).parts[-2]
 
             scene = os.path.basename(scene_path)
+        #   data_path = os.path.join(DATA_PATH, condition, class_ind, 'source', scene)
+        #   Ann_path = os.path.join(DATA_PATH, condition, class_ind, 'label', scene)
             data_path = scene_path
             Ann_path = scene_path.replace("source", "label")
 
@@ -194,7 +194,8 @@ def main():
             Lidar_path = os.path.join(data_path, 'Lidar')
 
             scene_name = scene[-8:-3]  # '00050'
-            samples = sorted([name[-7:-4] for name in os.listdir(Radar_path) if os.path.isfile(os.path.join(Radar_path, name))])
+            samples = sorted([name[-7:-4] for name in os.listdir(
+                Radar_path) if os.path.isfile(os.path.join(Radar_path, name))])
 
             # Lidar-camera calibration file
             LC_calib_filename = os.path.join(
@@ -206,8 +207,26 @@ def main():
 
             # caemra intricsic matrix
 
+            count = 0
             # samples = [samples[i] for i in range(3,20,4)]
             for sample in (samples)[5::subsample]:
+
+                # flag = False
+                # for box3d in boxes['annotation']:
+
+                #   if box3d['category'].lower() == 'pedestrian':
+                #     flag = True
+                # if not flag:
+                #   continue
+
+                # if not (split in ['test']) and \
+                #   not (scene_name in SCENE_SPLITS[split]):
+                #   continue
+
+                # subsampling
+                # count += 1
+                # if count % 4 != 0:
+                #   continue
 
                 lidar_filename = os.path.join(
                     Lidar_path, '2-048_{}_LR_{}.pcd'.format(scene_name, sample))
@@ -355,7 +374,7 @@ def main():
 
                 for box3d in boxes['annotation']:
 
-                    track_id = box3d['id']
+                    # track_id = box3d['id']
 
                     det_name = box3d['category'].lower()
                     if det_name == 'etc':
@@ -366,165 +385,163 @@ def main():
 
                     num_anns += 1
 
-                    # for box_orig in box3d['3d_box']: # all boxes
-                    box_orig = box_select(box3d['3d_box'], det_name) # select sub_id box
+                    for box_orig in box3d['3d_box']: 
+                        # box_orig = box3d['3d_box'][0]
+                        track_id = 100*( abs(box3d['id']) ) + abs( box_orig["sub_id"] )
 
-                    # track_id = 100*( abs(box3d['id']) ) + abs( box_orig["sub_id"] )
+                        yaw = box_orig['rotation_y']
+                        yaw = float(-(yaw)-np.pi/2)
 
-                    yaw = box_orig['rotation_y']
-                    yaw = float(-(yaw)-np.pi/2)
+                        center = np.array(box_orig['location']+[1])
+                        center = np.dot(trans_l2c, center)[:3]
 
-                    center = np.array(box_orig['location']+[1])
-                    center = np.dot(trans_l2c, center)[:3]
+                        # box.wlh: w/h/l
+                        box_orig['dimension'] = [box_orig['dimension'][0],
+                                                box_orig['dimension'][2], box_orig['dimension'][1]]
 
-                    # box.wlh: w/h/l
-                    box_orig['dimension'] = [box_orig['dimension'][0],
-                                            box_orig['dimension'][2], box_orig['dimension'][1]]
+                        # box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(w=qw, x=qx, y=qy, z=qz))
+                        box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(
+                            axis=[0.0, 1.0, 0.0], radians=yaw))
 
-                    # box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(w=qw, x=qx, y=qy, z=qz))
-                    box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(
-                        axis=[0.0, 1.0, 0.0], radians=yaw))
+                        # box.wlh = np.array([box.wlh[0], box.wlh[2], box.wlh[1]]) # wlh
+                        box.translate(np.array([0, box.wlh[2] / 2, 0]))
 
-                    # box.wlh = np.array([box.wlh[0], box.wlh[2], box.wlh[1]]) # wlh
-                    box.translate(np.array([0, box.wlh[2] / 2, 0]))
+                        category_id = CAT_IDS[det_name]
 
-                    category_id = CAT_IDS[det_name]
+                        ############## amodel_center #####################
+                        amodel_center = project_to_image(
+                            np.array([box.center[0], box.center[1] - box.wlh[2] / 2, box.center[2]],
+                                    np.float32).reshape(1, 3), calib)[0]  # 산민이형
 
-                    ############## amodel_center #####################
-                    amodel_center = project_to_image(
-                        np.array([box.center[0], box.center[1] - box.wlh[2] / 2, box.center[2]],
-                                np.float32).reshape(1, 3), calib)[0]  # 산민이형
+                        if amodel_center[0] > 0 and amodel_center[0] < 1920 and amodel_center[1] > 0 and amodel_center[1] < 1200:
+                            # convert to normalized image coordinate
+                            amodel_center[0] = (
+                                amodel_center[0] - calib[0, 2]) / calib[0, 0]
+                            amodel_center[1] = (
+                                amodel_center[1] - calib[1, 2]) / calib[1, 1]
 
-                    if amodel_center[0] > 0 and amodel_center[0] < 1920 and amodel_center[1] > 0 and amodel_center[1] < 1200:
-                        # convert to normalized image coordinate
-                        amodel_center[0] = (
-                            amodel_center[0] - calib[0, 2]) / calib[0, 0]
-                        amodel_center[1] = (
-                            amodel_center[1] - calib[1, 2]) / calib[1, 1]
+                            # calculate parameters
 
-                        # calculate parameters
+                            if scene[0] == 'S':
+                                k1, k2 = DISTORTION_COEFFI[0][0], DISTORTION_COEFFI[0][1]
+                            else:
+                                k1, k2 = DISTORTION_COEFFI[1][0], DISTORTION_COEFFI[1][1]
+                            r2 = (amodel_center[0]**2 + amodel_center[1]**2)
+                            r4 = r2**2
 
-                        if scene[0] == 'S':
-                            k1, k2 = DISTORTION_COEFFI[0][0], DISTORTION_COEFFI[0][1]
+                            # undistort
+                            amodel_center = amodel_center * (1 + k1 * r2 + k2 * r4)
+
+                            # convert back to image coordinate
+                            amodel_center[0] = amodel_center[0] * \
+                                calib[0, 0] + calib[0, 2]
+                            amodel_center[1] = amodel_center[1] * \
+                                calib[1, 1] + calib[1, 2]
+                            ###################################################
                         else:
-                            k1, k2 = DISTORTION_COEFFI[1][0], DISTORTION_COEFFI[1][1]
-                        r2 = (amodel_center[0]**2 + amodel_center[1]**2)
-                        r4 = r2**2
+                            # print(scene,sample)
+                            continue
 
-                        # undistort
-                        amodel_center = amodel_center * (1 + k1 * r2 + k2 * r4)
+                        # instance information in COCO format
+                        ann = {
+                            'id': num_anns,
+                            'image_id': num_images,
+                            'category_id': category_id,
+                            # h w l           #// 병합 대상
+                            'dim': [float(box.wlh[2]), float(box.wlh[0]), float(box.wlh[1])],
+                            # // 병합 대상
+                            'location':  [float(box.center[0]), float(box.center[1]), float(box.center[2])],
+                            'depth': box.center[2],  # // 병합 대상
+                            'occluded': 0,
+                            'truncated': 0,
+                            'rotation_y': yaw,  # // 병합 대상
+                            'amodel_center': amodel_center.tolist(),  # // 병합 대상
+                            'iscrowd': 0,
+                            'track_id': track_id,  # // 병합 대상
+                            'attributes': 0,
+                            'velocity': 0,
+                            'velocity_cam': 0,
+                            # // 병합 대상
+                            'num_lidar_pts': box_orig['lidar_point_count'],
+                            # // 병합 대상
+                            "num_radar_pts": box_orig['radar_point_count'],
+                        }
+                        ############################################################################################################
+                        ############################################################################################################
+                        # TODO: KYS: uncomment to visualize
+                    #   bbox_vis = copy.copy(box3d['3d_box'][0]['2d_box'])
+                    #   bbox_vis = [bbox_vis[0] - bbox_vis[2]/2, bbox_vis[1] - bbox_vis[3]/2, bbox_vis[0] + bbox_vis[2]/2, bbox_vis[1] + bbox_vis[3]/2]
+                    #   plt.plot([bbox_vis[0], bbox_vis[0]], [bbox_vis[1], bbox_vis[3]], linewidth=0.5, c='g')
+                    #   plt.plot([bbox_vis[2], bbox_vis[2]], [bbox_vis[1], bbox_vis[3]], linewidth=0.5, c='g')
+                    #   plt.plot([bbox_vis[0], bbox_vis[2]], [bbox_vis[1], bbox_vis[1]], linewidth=0.5, c='g')
+                    #   plt.plot([bbox_vis[2], bbox_vis[0]], [bbox_vis[3], bbox_vis[3]], linewidth=0.5, c='g')
+                    #   plt.scatter(amodel_center[0],height-amodel_center[1])
+                    #   imgname = os.path.basename(image_info['file_name'])
+                    #   plt.savefig(f'{DEMO_PATH}/plot_{imgname}.png')
+                    #   plt.clf()
 
-                        # convert back to image coordinate
-                        amodel_center[0] = amodel_center[0] * \
-                            calib[0, 0] + calib[0, 2]
-                        amodel_center[1] = amodel_center[1] * \
-                            calib[1, 1] + calib[1, 2]
-                        ###################################################
-                    else:
-                        # print(scene,sample)
-                        continue
+                        ##################################################################
+                        ######################### considering distortion #################
+                        # get image coordinate point (using given extrinsic, intrinsic)
+                        # box_3d = compute_box_3d(ann['dim'], ann['location'], ann['rotation_y'])
+                        # box_2d = project_to_image(box_3d, calib)
 
-                    # instance information in COCO format
-                    ann = {
-                        'id': num_anns,
-                        'image_id': num_images,
-                        'category_id': category_id,
-                        # h w l           #// 병합 대상
-                        'dim': [float(box.wlh[2]), float(box.wlh[0]), float(box.wlh[1])],
-                        # // 병합 대상
-                        'location':  [float(box.center[0]), float(box.center[1]), float(box.center[2])],
-                        'depth': box.center[2],  # // 병합 대상
-                        'occluded': 0,
-                        'truncated': 0,
-                        'rotation_y': yaw,  # // 병합 대상
-                        'amodel_center': amodel_center.tolist(),  # // 병합 대상
-                        'iscrowd': 0,
-                        'track_id': track_id,  # // 병합 대상
-                        'attributes': 0,
-                        'velocity': 0,
-                        'velocity_cam': 0,
-                        # // 병합 대상
-                        'num_lidar_pts': box_orig['lidar_point_count'],
-                        # // 병합 대상
-                        "num_radar_pts": box_orig['radar_point_count'],
-                    }
-                    ############################################################################################################
-                    ############################################################################################################
-                    # TODO: KYS: uncomment to visualize
-                #   bbox_vis = copy.copy(box3d['3d_box'][0]['2d_box'])
-                #   bbox_vis = [bbox_vis[0] - bbox_vis[2]/2, bbox_vis[1] - bbox_vis[3]/2, bbox_vis[0] + bbox_vis[2]/2, bbox_vis[1] + bbox_vis[3]/2]
-                #   plt.plot([bbox_vis[0], bbox_vis[0]], [bbox_vis[1], bbox_vis[3]], linewidth=0.5, c='g')
-                #   plt.plot([bbox_vis[2], bbox_vis[2]], [bbox_vis[1], bbox_vis[3]], linewidth=0.5, c='g')
-                #   plt.plot([bbox_vis[0], bbox_vis[2]], [bbox_vis[1], bbox_vis[1]], linewidth=0.5, c='g')
-                #   plt.plot([bbox_vis[2], bbox_vis[0]], [bbox_vis[3], bbox_vis[3]], linewidth=0.5, c='g')
-                #   plt.scatter(amodel_center[0],height-amodel_center[1])
-                #   imgname = os.path.basename(image_info['file_name'])
-                #   plt.savefig(f'{DEMO_PATH}/plot_{imgname}.png')
-                #   plt.clf()
+                        # if DISTORTION:
+                        # # convert to normalized image coordinate
+                        #   box_2d[:, 0] = (box_2d[:, 0] - calib[0, 2]) / calib[0, 0]
+                        #   box_2d[:, 1] = (box_2d[:, 1] - calib[1, 2]) / calib[1, 1]
 
-                    ##################################################################
-                    ######################### considering distortion #################
-                    # get image coordinate point (using given extrinsic, intrinsic)
-                    # box_3d = compute_box_3d(ann['dim'], ann['location'], ann['rotation_y'])
-                    # box_2d = project_to_image(box_3d, calib)
+                        #   # calculate parameters
+                        #   if scene[0] == 'S':
+                        #     k1, k2 = DISTORTION_COEFFI[0][0], DISTORTION_COEFFI[0][1]
+                        #   else:
+                        #     k1, k2 = DISTORTION_COEFFI[1][0], DISTORTION_COEFFI[1][1]
+                        #   r2 = (box_2d[:, 0]**2 + box_2d[:, 1]**2)[:, None]
+                        #   r4 = r2**2
 
-                    # if DISTORTION:
-                    # # convert to normalized image coordinate
-                    #   box_2d[:, 0] = (box_2d[:, 0] - calib[0, 2]) / calib[0, 0]
-                    #   box_2d[:, 1] = (box_2d[:, 1] - calib[1, 2]) / calib[1, 1]
+                        #   # undistort
+                        #   box_2d = box_2d * (1 + k1 * r2 + k2 * r4)
 
-                    #   # calculate parameters
-                    #   if scene[0] == 'S':
-                    #     k1, k2 = DISTORTION_COEFFI[0][0], DISTORTION_COEFFI[0][1]
-                    #   else:
-                    #     k1, k2 = DISTORTION_COEFFI[1][0], DISTORTION_COEFFI[1][1]
-                    #   r2 = (box_2d[:, 0]**2 + box_2d[:, 1]**2)[:, None]
-                    #   r4 = r2**2
+                        #   # convert back to image coordinate
+                        #   box_2d[:, 0] = box_2d[:, 0] * calib[0, 0] + calib[0, 2]
+                        #   box_2d[:, 1] = box_2d[:, 1] * calib[1, 1] + calib[1, 2]
+                        #   ##################################################################
+                        #   ##################################################################
 
-                    #   # undistort
-                    #   box_2d = box_2d * (1 + k1 * r2 + k2 * r4)
+                        # plt.scatter(box_2d[:, 0], box_2d[:, 1], s=1, c='r')
+                        # plt.plot(box_2d[[0, 1], 0], box_2d[[0, 1], 1], linewidth=0.5, c='b')
+                        # plt.plot(box_2d[[0, 4], 0], box_2d[[0, 4], 1], linewidth=0.5, c='b')
+                        # plt.plot(box_2d[[5, 1], 0], box_2d[[5, 1], 1], linewidth=0.5, c='b')
+                        # plt.plot(box_2d[[5, 4], 0], box_2d[[5, 4], 1], linewidth=0.5, c='b')
 
-                    #   # convert back to image coordinate
-                    #   box_2d[:, 0] = box_2d[:, 0] * calib[0, 0] + calib[0, 2]
-                    #   box_2d[:, 1] = box_2d[:, 1] * calib[1, 1] + calib[1, 2]
-                    #   ##################################################################
-                    #   ##################################################################
+                        # plt.plot(box_2d[[2, 3], 0], box_2d[[2, 3], 1], linewidth=0.5, c='r')
+                        # plt.plot(box_2d[[2, 6], 0], box_2d[[2, 6], 1], linewidth=0.5, c='r')
+                        # plt.plot(box_2d[[7, 3], 0], box_2d[[7, 3], 1], linewidth=0.5, c='r')
+                        # plt.plot(box_2d[[7, 6], 0], box_2d[[7, 6], 1], linewidth=0.5, c='r')
+                        ############################################################################################################
+                        ############################################################################################################
 
-                    # plt.scatter(box_2d[:, 0], box_2d[:, 1], s=1, c='r')
-                    # plt.plot(box_2d[[0, 1], 0], box_2d[[0, 1], 1], linewidth=0.5, c='b')
-                    # plt.plot(box_2d[[0, 4], 0], box_2d[[0, 4], 1], linewidth=0.5, c='b')
-                    # plt.plot(box_2d[[5, 1], 0], box_2d[[5, 1], 1], linewidth=0.5, c='b')
-                    # plt.plot(box_2d[[5, 4], 0], box_2d[[5, 4], 1], linewidth=0.5, c='b')
+                        box2d = box3d['3d_box'][0]['2d_box']
 
-                    # plt.plot(box_2d[[2, 3], 0], box_2d[[2, 3], 1], linewidth=0.5, c='r')
-                    # plt.plot(box_2d[[2, 6], 0], box_2d[[2, 6], 1], linewidth=0.5, c='r')
-                    # plt.plot(box_2d[[7, 3], 0], box_2d[[7, 3], 1], linewidth=0.5, c='r')
-                    # plt.plot(box_2d[[7, 6], 0], box_2d[[7, 6], 1], linewidth=0.5, c='r')
-                    ############################################################################################################
-                    ############################################################################################################
+                        if box2d[2] > 1200:
+                            continue
+                        bbox = tuple([box2d[0], box2d[1], box2d[0] +
+                                    box2d[2], box2d[1]+box2d[3]])
+                        # bbox = KittiDB.project_kitti_box_to_image(
+                        #   copy.deepcopy(box), camera_intrinsic, imsize=(1920, 1200))
 
-                    # box2d = box3d['3d_box'][0]['2d_box']
-                    box2d = box_orig['2d_box']
+                        if bbox == None:
+                            continue
+                        alpha = _rot_y2alpha(yaw, box2d[0],
+                                            camera_intrinsic[0, 2], camera_intrinsic[0, 0])
+                        # alpha = _rot_y2alpha(yaw, (bbox[0] + bbox[2]) / 2,
+                        #                      camera_intrinsic[0, 2], camera_intrinsic[0, 0])
 
-                    if box2d[2] > 1200:
-                        continue
-                    bbox = tuple([box2d[0], box2d[1], box2d[0] +
-                                box2d[2], box2d[1]+box2d[3]])
-                    # bbox = KittiDB.project_kitti_box_to_image(
-                    #   copy.deepcopy(box), camera_intrinsic, imsize=(1920, 1200))
-
-                    if bbox == None:
-                        continue
-                    alpha = _rot_y2alpha(yaw, box2d[0],
-                                        camera_intrinsic[0, 2], camera_intrinsic[0, 0])
-                    # alpha = _rot_y2alpha(yaw, (bbox[0] + bbox[2]) / 2,
-                    #                      camera_intrinsic[0, 2], camera_intrinsic[0, 0])
-
-                    ann['bbox'] = [box2d[0]-box2d[2]/2,
-                                box2d[1]-box2d[3]/2, box2d[2], box2d[3]]
-                    ann['area'] = (box3d['3d_box'][0]['2d_area'])
-                    ann['alpha'] = alpha
-                    anns.append(ann)
+                        ann['bbox'] = [box2d[0]-box2d[2]/2,
+                                    box2d[1]-box2d[3]/2, box2d[2], box2d[3]]
+                        ann['area'] = (box3d['3d_box'][0]['2d_area'])
+                        ann['alpha'] = alpha
+                        anns.append(ann)
 
                 ############################################################################################################
                 ############################################################################################################
@@ -611,6 +628,77 @@ def main():
             split, len(ret['images']), len(ret['annotations'])))
         print('out_path', out_path)
         json.dump(ret, open(out_path, 'w'))
+
+
+def generate_scene_split(ratio=10):
+    data_path = DATA_PATH
+
+    norm_dir = os.path.join(data_path, 'normal')
+    norm_scenes = os.listdir(norm_dir)
+
+    abnorm_dir = os.path.join(data_path, 'abnormal')
+    abnorm_scenes = os.listdir(abnorm_dir)
+
+    train_norm, train_abnorm, val_norm, val_abnorm, test_norm, test_abnorm = [], [], [], [], [], []
+
+    # for normal scenes
+    for perclass_scenes in norm_scenes:
+        scenes_dir = os.path.join(norm_dir, perclass_scenes, 'source')
+        scenes = os.listdir(scenes_dir)
+
+        new_scenes = []
+        for scene in scenes:
+            if scene[2:6] == 'Clip':
+                new_scenes.append(scene)
+
+        new_scenes.sort()
+
+        scenes_len = len(new_scenes)
+        train_idx = int(len(new_scenes) * (1-(2/ratio)))
+
+        train_norm.append(new_scenes[:train_idx])
+        test_norm.append(
+            new_scenes[train_idx:train_idx+(scenes_len-train_idx)//2])
+        val_norm.append(new_scenes[train_idx+(scenes_len-train_idx)//2:])
+
+    # for abnormal scenes
+    for perclass_scenes in abnorm_scenes:
+        scenes_dir = os.path.join(abnorm_dir, perclass_scenes, 'source')
+        scenes = os.listdir(scenes_dir)
+
+        new_scenes = []
+        for scene in scenes:
+            if scene[2:6] == 'Clip':
+                new_scenes.append(scene)
+
+        new_scenes.sort()
+
+        scenes_len = len(new_scenes)
+        train_idx = int(len(new_scenes) * (1-(2/ratio)))
+
+        train_abnorm.append(new_scenes[:train_idx])
+        test_abnorm.append(
+            new_scenes[train_idx:train_idx+(scenes_len-train_idx)//2])
+        val_abnorm.append(new_scenes[train_idx+(scenes_len-train_idx)//2:])
+        # val_abnorm.append(new_scenes[train_idx+(scenes_len-train_idx)//2:train_idx+(scenes_len-train_idx)//2+(scenes_len-train_idx)*3//4])
+    train_norm = sum(train_norm, [])
+    train_abnorm = sum(train_abnorm, [])
+    val_norm = sum(val_norm, [])
+    val_abnorm = sum(val_abnorm, [])
+    test_norm = sum(test_norm, [])
+    test_abnorm = sum(test_abnorm, [])
+
+    SCENE_SPLITS = {
+        'train': train_norm + train_abnorm,
+        'train_norm': train_norm,
+        'train_abnorm': train_abnorm,
+        'val_norm': val_norm,
+        'val_abnorm': val_abnorm,
+        'test_norm': test_norm,
+        'test_abnorm': test_abnorm,
+    }
+
+    return SCENE_SPLITS
 
 
 if __name__ == '__main__':
