@@ -124,8 +124,8 @@ def accumulate(gt_boxes: EvalBoxes,
     # ---------------------------------------------
 
     # Accumulate.
-    tp = np.cumsum(tp).astype(np.float)
-    fp = np.cumsum(fp).astype(np.float)
+    tp = np.cumsum(tp).astype(np.float64)
+    fp = np.cumsum(fp).astype(np.float64)
     conf = np.array(conf)
 
     # Calculate precision and recall.

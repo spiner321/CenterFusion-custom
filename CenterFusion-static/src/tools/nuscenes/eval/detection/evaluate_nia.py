@@ -9,27 +9,43 @@ import time
 from typing import Tuple, Dict, Any
 
 import numpy as np
+import open3d
+import matplotlib.pyplot as plt
 
-from nuscenes import NuScenes
-from nuscenes.eval.common.config import config_factory
-from nuscenes.eval.common.data_classes import EvalBoxes
-from nuscenes.utils.data_classes import Box
-from nuscenes.eval.common.loaders import load_prediction, load_gt, add_center_dist, filter_eval_boxes
-from nuscenes.eval.detection.algo import accumulate, calc_ap, calc_tp
-from nuscenes.eval.detection.constants import TP_METRICS
-from nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetrics, DetectionBox, \
+# origin
+# from nuscenes import NuScenes
+# from nuscenes.eval.common.config import config_factory
+# from nuscenes.eval.common.data_classes import EvalBoxes
+# from nuscenes.utils.data_classes import Box
+# from nuscenes.eval.common.loaders import load_prediction, load_gt, add_center_dist, filter_eval_boxes
+# from nuscenes.eval.detection.algo import accumulate, calc_ap, calc_tp
+# from nuscenes.eval.detection.constants import TP_METRICS
+# from nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetrics, DetectionBox, \
+#     DetectionMetricDataList
+# from nuscenes.eval.detection.render import summary_plot, class_pr_curve, class_tp_curve, dist_pr_curve, visualize_sample
+
+# from pyquaternion import Quaternion
+
+# from nuscenes.eval.common.utils import boxes_to_sensor
+# from nuscenes.utils.data_classes import LidarPointCloud
+# from nuscenes.utils.geometry_utils import view_points
+
+# nia
+from tools.nuscenes.eval.common.config import config_factory
+from tools.nuscenes.eval.common.data_classes import EvalBoxes
+from tools.nuscenes.utils.data_classes import Box
+from tools.nuscenes.eval.common.loaders import load_prediction, load_gt, add_center_dist, filter_eval_boxes
+from tools.nuscenes.eval.detection.algo import accumulate, calc_ap, calc_tp
+from tools.nuscenes.eval.detection.constants import TP_METRICS
+from tools.nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetrics, DetectionBox, \
     DetectionMetricDataList
-from nuscenes.eval.detection.render import summary_plot, class_pr_curve, class_tp_curve, dist_pr_curve, visualize_sample
+from tools.nuscenes.eval.detection.render import summary_plot, class_pr_curve, class_tp_curve, dist_pr_curve, visualize_sample
 
 from pyquaternion import Quaternion
 
-from nuscenes.eval.common.utils import boxes_to_sensor
-from nuscenes.utils.data_classes import LidarPointCloud
-from nuscenes.utils.geometry_utils import view_points
-
-from matplotlib import pyplot as plt
-import open3d
-from scipy.spatial.transform import Rotation as R
+from tools.nuscenes.eval.common.utils import boxes_to_sensor
+from tools.nuscenes.utils.data_classes import LidarPointCloud
+from tools.nuscenes.utils.geometry_utils import view_points
 
 
 # CATS = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian', 'barrier']
@@ -411,9 +427,7 @@ class niaEval(DetectionEval):
     Dummy class for backward-compatibility. Same as DetectionEval.
     """
 
-
-if __name__ == "__main__":
-
+def main():
     # Settings.
     parser = argparse.ArgumentParser(description='Evaluate nuScenes detection results.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -458,7 +472,12 @@ if __name__ == "__main__":
         with open(config_path, 'r') as _f:
             cfg_ = DetectionConfig.deserialize(json.load(_f))
 
-    nusc_ = NuScenes(version=version_, verbose=verbose_, dataroot=dataroot_)
+    # nusc_ = NuScenes(version=version_, verbose=verbose_, dataroot=dataroot_)
+    nusc_ = None
     nusc_eval = DetectionEval(nusc_, config=cfg_, result_path=result_path_, ann_path=ann_path_, eval_set=eval_set_,
                               output_dir=output_dir_, verbose=verbose_)
     nusc_eval.main(plot_examples=plot_examples_, render_curves=render_curves_)
+
+
+if __name__ == "__main__":
+    main()
