@@ -10,11 +10,11 @@ python test.py ddd \
     --run_dataset_eval \
     --nuscenes_att \
     --velocity \
-    --pointcloud \
-    --print_iter 100 \
+    --print_iter 10000 \
     --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/selectsub1 \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/test/normal_epoch22 \
-    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train/model_22.pth
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/test/normal_nopc_epoch255 \
+    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train/model_255.pth
+    # --pointcloud \
 
 
 # python src/test.py ddd \
@@ -33,8 +33,3 @@ python test.py ddd \
 #     --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/all \
 #     --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/test/normal_epoch18 \
 #     --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_18.pth \
-
-
-
-
-
