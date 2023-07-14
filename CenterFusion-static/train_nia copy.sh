@@ -10,12 +10,12 @@ python src/main.py \
     --nuscenes_att \
     --velocity \
     --batch_size 72 \
-    --num_workers 12 \
+    --num_workers 8 \
     --lr 2.5e-4 \
     --num_epochs 300 \
     --lr_step 50 \
     --save_all \
-    --gpus 1,2,3 \
+    --gpus 3 \
     --not_rand_crop \
     --flip 0.5 \
     --shift 0.1 \
@@ -26,9 +26,9 @@ python src/main.py \
     --max_pc_dist 80.0 \
     --print_iter 500 \
     --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/selectsub1 \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1_1/train \
-    # --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train/model_last.pth \
-    # --resume
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train \
+    --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train/model_last.pth \
+    --resume
 #     # --freeze_backbone \
 
 

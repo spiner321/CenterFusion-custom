@@ -6,13 +6,13 @@ python src/main.py \
     --shuffle_train \
     --train_split train \
     --val_split val \
-    --val_intervals 50 \
+    --val_intervals 10 \
     --nuscenes_att \
     --velocity \
-    --batch_size 72 \
-    --num_workers 12 \
+    --batch_size 3 \
+    --num_workers 4 \
     --lr 2.5e-4 \
-    --num_epochs 300 \
+    --num_epochs 100 \
     --lr_step 50 \
     --save_all \
     --gpus 1,2,3 \
@@ -24,10 +24,10 @@ python src/main.py \
     --pc_z_offset 0.0 \
     --pillar_dims 1.0,0.2,0.2 \
     --max_pc_dist 80.0 \
-    --print_iter 500 \
-    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/selectsub1 \
-    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1_1/train \
-    # --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/selectsub1/train/model_last.pth \
+    --print_iter 100 \
+    --data_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/data/sample \
+    --save_dir /data/kimgh/CenterFusion-custom/CenterFusion-static/result/sample/train \
+    # --load_model /data/kimgh/CenterFusion-custom/CenterFusion-static/result/all/train/model_1.pth \
     # --resume
 #     # --freeze_backbone \
 

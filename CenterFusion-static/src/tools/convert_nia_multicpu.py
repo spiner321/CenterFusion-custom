@@ -41,10 +41,10 @@ sys.path.insert(0, os.getcwd())
 # from nuScenes_lib.utils_radar import map_pointcloud_to_image
 
 #// ================ PARAMETERS ================
-DATA_PATH = '/data/kimgh/CenterFusion-custom/CenterFusion-static/data/sample'
+DATA_PATH = '/data/kimgh/CenterFusion-custom/CenterFusion-static/data/selectsub2'
 OUT_PATH = DATA_PATH + '/annotations'
-subsample = 10
-num_process = 5
+subsample = 3
+num_process = 40
 
 SPLITS = {
     'train': 'train',
@@ -57,6 +57,7 @@ DEBUG = False
 
 CATS = ['median_strip', 'overpass', 'tunnel',
         'sound_barrier', 'street_trees', 'ramp_sect', 'road_sign']
+# CATS = ['median_strip', 'tunnel', 'sound_barrier', 'street_trees']
 
 SENSOR_ID = {'RADAR_FRONT': 7, 'RADAR_FRONT_LEFT': 9,
              'RADAR_FRONT_RIGHT': 10, 'RADAR_BACK_LEFT': 11,
@@ -325,122 +326,124 @@ def gen_annos(scenes, split, data_path, ret):
 
             for box3d in boxes['annotation']:
 
-                track_id = box3d['id']
-
                 det_name = box3d['category'].lower()
-                if det_name == 'etc':
-                    det_name = 'barrier'
+                if det_name in CATS:
 
-                if det_name is None:
-                    continue
+                    track_id = box3d['id']
 
-                num_anns += 1
+                    if det_name == 'etc':
+                        det_name = 'barrier'
 
-                # for box_orig in box3d['3d_box']: # all boxes
-                box_orig = box_select(box3d['3d_box'], det_name) # select sub_id box
+                    if det_name is None:
+                        continue
 
-                # track_id = 100*( abs(box3d['id']) ) + abs( box_orig["sub_id"] )
+                    num_anns += 1
 
-                yaw = box_orig['rotation_y']
-                yaw = float(-(yaw)-np.pi/2)
+                    # for box_orig in box3d['3d_box']: # all boxes
+                    box_orig = box_select(box3d['3d_box'], det_name) # select sub_id box
 
-                center = np.array(box_orig['location']+[1])
-                center = np.dot(trans_l2c, center)[:3]
+                    # track_id = 100*( abs(box3d['id']) ) + abs( box_orig["sub_id"] )
 
-                # box.wlh: w/h/l
-                box_orig['dimension'] = [box_orig['dimension'][0],
-                                        box_orig['dimension'][2], box_orig['dimension'][1]]
+                    yaw = box_orig['rotation_y']
+                    yaw = float(-(yaw)-np.pi/2)
 
-                # box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(w=qw, x=qx, y=qy, z=qz))
-                box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(
-                    axis=[0.0, 1.0, 0.0], radians=yaw))
+                    center = np.array(box_orig['location']+[1])
+                    center = np.dot(trans_l2c, center)[:3]
 
-                # box.wlh = np.array([box.wlh[0], box.wlh[2], box.wlh[1]]) # wlh
-                box.translate(np.array([0, box.wlh[2] / 2, 0]))
+                    # box.wlh: w/h/l
+                    box_orig['dimension'] = [box_orig['dimension'][0],
+                                            box_orig['dimension'][2], box_orig['dimension'][1]]
 
-                category_id = CAT_IDS[det_name]
+                    # box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(w=qw, x=qx, y=qy, z=qz))
+                    box = Box(center=center, size=box_orig['dimension'], orientation=Quaternion(
+                        axis=[0.0, 1.0, 0.0], radians=yaw))
 
-                ############## amodel_center #####################
-                amodel_center = project_to_image(
-                    np.array([box.center[0], box.center[1] - box.wlh[2] / 2, box.center[2]],
-                            np.float32).reshape(1, 3), calib)[0]  # 산민이형
+                    # box.wlh = np.array([box.wlh[0], box.wlh[2], box.wlh[1]]) # wlh
+                    box.translate(np.array([0, box.wlh[2] / 2, 0]))
 
-                if amodel_center[0] > 0 and amodel_center[0] < 1920 and amodel_center[1] > 0 and amodel_center[1] < 1200:
-                    # convert to normalized image coordinate
-                    amodel_center[0] = (
-                        amodel_center[0] - calib[0, 2]) / calib[0, 0]
-                    amodel_center[1] = (
-                        amodel_center[1] - calib[1, 2]) / calib[1, 1]
+                    category_id = CAT_IDS[det_name]
 
-                    # calculate parameters
+                    ############## amodel_center #####################
+                    amodel_center = project_to_image(
+                        np.array([box.center[0], box.center[1] - box.wlh[2] / 2, box.center[2]],
+                                np.float32).reshape(1, 3), calib)[0]  # 산민이형
 
-                    if scene[0] == 'S':
-                        k1, k2 = DISTORTION_COEFFI[0][0], DISTORTION_COEFFI[0][1]
+                    if amodel_center[0] > 0 and amodel_center[0] < 1920 and amodel_center[1] > 0 and amodel_center[1] < 1200:
+                        # convert to normalized image coordinate
+                        amodel_center[0] = (
+                            amodel_center[0] - calib[0, 2]) / calib[0, 0]
+                        amodel_center[1] = (
+                            amodel_center[1] - calib[1, 2]) / calib[1, 1]
+
+                        # calculate parameters
+
+                        if scene[0] == 'S':
+                            k1, k2 = DISTORTION_COEFFI[0][0], DISTORTION_COEFFI[0][1]
+                        else:
+                            k1, k2 = DISTORTION_COEFFI[1][0], DISTORTION_COEFFI[1][1]
+                        r2 = (amodel_center[0]**2 + amodel_center[1]**2)
+                        r4 = r2**2
+
+                        # undistort
+                        amodel_center = amodel_center * (1 + k1 * r2 + k2 * r4)
+
+                        # convert back to image coordinate
+                        amodel_center[0] = amodel_center[0] * \
+                            calib[0, 0] + calib[0, 2]
+                        amodel_center[1] = amodel_center[1] * \
+                            calib[1, 1] + calib[1, 2]
+                        ###################################################
                     else:
-                        k1, k2 = DISTORTION_COEFFI[1][0], DISTORTION_COEFFI[1][1]
-                    r2 = (amodel_center[0]**2 + amodel_center[1]**2)
-                    r4 = r2**2
+                        # print(scene,sample)
+                        continue
 
-                    # undistort
-                    amodel_center = amodel_center * (1 + k1 * r2 + k2 * r4)
+                    # instance information in COCO format
+                    ann = {
+                        'id': num_anns,
+                        'image_id': num_images,
+                        'category_id': category_id,
+                        # h w l           #// 병합 대상
+                        'dim': [float(box.wlh[2]), float(box.wlh[0]), float(box.wlh[1])],
+                        # // 병합 대상
+                        'location':  [float(box.center[0]), float(box.center[1]), float(box.center[2])],
+                        'depth': box.center[2],  # // 병합 대상
+                        'occluded': 0,
+                        'truncated': 0,
+                        'rotation_y': yaw,  # // 병합 대상
+                        'amodel_center': amodel_center.tolist(),  # // 병합 대상
+                        'iscrowd': 0,
+                        'track_id': track_id,  # // 병합 대상
+                        'attributes': 0,
+                        'velocity': 0,
+                        'velocity_cam': 0,
+                        # // 병합 대상
+                        'num_lidar_pts': box_orig['lidar_point_count'],
+                        # // 병합 대상
+                        "num_radar_pts": box_orig['radar_point_count'],
+                    }
 
-                    # convert back to image coordinate
-                    amodel_center[0] = amodel_center[0] * \
-                        calib[0, 0] + calib[0, 2]
-                    amodel_center[1] = amodel_center[1] * \
-                        calib[1, 1] + calib[1, 2]
-                    ###################################################
-                else:
-                    # print(scene,sample)
-                    continue
+                    # box2d = box3d['3d_box'][0]['2d_box']
+                    box2d = box_orig['2d_box']
 
-                # instance information in COCO format
-                ann = {
-                    'id': num_anns,
-                    'image_id': num_images,
-                    'category_id': category_id,
-                    # h w l           #// 병합 대상
-                    'dim': [float(box.wlh[2]), float(box.wlh[0]), float(box.wlh[1])],
-                    # // 병합 대상
-                    'location':  [float(box.center[0]), float(box.center[1]), float(box.center[2])],
-                    'depth': box.center[2],  # // 병합 대상
-                    'occluded': 0,
-                    'truncated': 0,
-                    'rotation_y': yaw,  # // 병합 대상
-                    'amodel_center': amodel_center.tolist(),  # // 병합 대상
-                    'iscrowd': 0,
-                    'track_id': track_id,  # // 병합 대상
-                    'attributes': 0,
-                    'velocity': 0,
-                    'velocity_cam': 0,
-                    # // 병합 대상
-                    'num_lidar_pts': box_orig['lidar_point_count'],
-                    # // 병합 대상
-                    "num_radar_pts": box_orig['radar_point_count'],
-                }
+                    if box2d[2] > 1200:
+                        continue
+                    bbox = tuple([box2d[0], box2d[1], box2d[0] +
+                                box2d[2], box2d[1]+box2d[3]])
+                    # bbox = KittiDB.project_kitti_box_to_image(
+                    #   copy.deepcopy(box), camera_intrinsic, imsize=(1920, 1200))
 
-                # box2d = box3d['3d_box'][0]['2d_box']
-                box2d = box_orig['2d_box']
+                    if bbox == None:
+                        continue
+                    alpha = _rot_y2alpha(yaw, box2d[0],
+                                        camera_intrinsic[0, 2], camera_intrinsic[0, 0])
+                    # alpha = _rot_y2alpha(yaw, (bbox[0] + bbox[2]) / 2,
+                    #                      camera_intrinsic[0, 2], camera_intrinsic[0, 0])
 
-                if box2d[2] > 1200:
-                    continue
-                bbox = tuple([box2d[0], box2d[1], box2d[0] +
-                            box2d[2], box2d[1]+box2d[3]])
-                # bbox = KittiDB.project_kitti_box_to_image(
-                #   copy.deepcopy(box), camera_intrinsic, imsize=(1920, 1200))
-
-                if bbox == None:
-                    continue
-                alpha = _rot_y2alpha(yaw, box2d[0],
-                                    camera_intrinsic[0, 2], camera_intrinsic[0, 0])
-                # alpha = _rot_y2alpha(yaw, (bbox[0] + bbox[2]) / 2,
-                #                      camera_intrinsic[0, 2], camera_intrinsic[0, 0])
-
-                ann['bbox'] = [box2d[0]-box2d[2]/2,
-                            box2d[1]-box2d[3]/2, box2d[2], box2d[3]]
-                ann['area'] = (box3d['3d_box'][0]['2d_area'])
-                ann['alpha'] = alpha
-                anns.append(ann)
+                    ann['bbox'] = [box2d[0]-box2d[2]/2,
+                                box2d[1]-box2d[3]/2, box2d[2], box2d[3]]
+                    ann['area'] = (box3d['3d_box'][0]['2d_area'])
+                    ann['alpha'] = alpha
+                    anns.append(ann)
 
             visable_anns = []
             for i in range(len(anns)):
@@ -498,7 +501,7 @@ def main():
         # merge results and re-order image_id and ann_id
         add_img_id = 0
         add_anno_id = 0
-        for result in results:
+        for result in tqdm(results, desc='reindexing ids'):
             imgs = result['images']
             anns = result['annotations']
 

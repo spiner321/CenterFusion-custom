@@ -50,6 +50,7 @@ from tools.nuscenes.utils.geometry_utils import view_points
 
 # CATS = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian', 'barrier']
 CATS = ['median_strip', 'overpass', 'tunnel', 'sound_barrier', 'street_trees', 'ramp_sect', 'road_sign']
+# CATS = ['median_strip', 'tunnel', 'sound_barrier', 'street_trees']
 
 class DetectionEval:
     """

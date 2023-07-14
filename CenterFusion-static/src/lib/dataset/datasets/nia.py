@@ -22,15 +22,19 @@ from nuscenes.utils.data_classes import Box
 from itertools import compress
 
 class nia(GenericDataset):
-  default_resolution = [448, 800]
-  # default_resolution = [600, 960]
+  # default_resolution = [448, 800] # origin
+  n = 2
+  default_resolution = [448 * n, 800 * n]
   num_categories = 7
   
   # class_name = ['car', 'truck', 'bus', 'bicycle', 'motorcycle', 'pedestrian', 'barrier']
   class_name = ['median_strip', 'overpass', 'tunnel', 'sound_barrier', 'street_trees', 'ramp_sect', 'road_sign']
+  # class_name = ['median_strip', 'tunnel', 'sound_barrier', 'street_trees']
+
 
   cat_ids = {i + 1: i + 1 for i in range(num_categories)}
-  focal_length = 1045
+  # focal_length = 1045
+  focal_length = 1200
   max_objs = 128
   _tracking_ignored_class = ['ETC']
   # _vehicles = ['CAR', 'TRUCK', 'BUS']

@@ -462,6 +462,7 @@ class opts(object):
     #     'pedestrian', 'motorcycle', 'bicycle', 'traffic_cone', 'barrier']
     CATS = ['median_strip', 'overpass', 'tunnel',
             'sound_barrier', 'street_trees', 'ramp_sect', 'road_sign']
+    # CATS = ['median_strip', 'tunnel', 'sound_barrier', 'street_trees']
     
     CAT_IDS = {v: i for i, v in enumerate(CATS)}
 
